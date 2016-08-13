@@ -52,6 +52,19 @@ function Convert-UnixTime
   Write-Output -InputObject $ConvertedTime
 }
 
+
+function Rename-Title{
+
+  param
+  (
+    [String]
+    [Parameter(Mandatory)]
+    $Title
+  )
+
+
+}
+
 function Get-TrendingPaste
 {
   <#
@@ -165,4 +178,66 @@ function Get-TrendingPaste
   }
 }
 
-Export-ModuleMember -Function Get-TrendingPast
+
+function Save-Paste {
+   [CmdletBinding(DefaultParameterSetName='Key')]
+  param
+  (
+    [String]
+    [Parameter(Mandatory,ParameterSetName='Key')]
+    $Key,
+  
+    [String]
+    [Parameter(Mandatory,ParameterSetName='url')]
+    $url,
+    
+    [String]
+    [Parameter(Mandatory,ParameterSetName='url')]
+    [Parameter(Mandatory,ParameterSetName='Key')]
+    [Alias("Title")]
+    $FileName,
+    
+    [String]
+    [Parameter(Mandatory,ParameterSetName='url')]
+    [Parameter(Mandatory,ParameterSetName='Key')]
+    $Format,
+    
+    [String]
+    [Parameter(ParameterSetName='url')]
+    [Parameter(ParameterSetName='Key')]
+    $FilePath =  "$env:USERPROFILE\Downloads"
+  )
+  
+  $pattern = "[{0}]" -f ([Regex]::Escape( [System.IO.Path]::GetInvalidFileNameChars() -join '' ))
+  
+  if($FileName -match $pattern){
+    #TODO: Make name file safe
+    #$FileName = 'Safe file name'
+    throw 'Safe file name not implemented yet'
+  }
+  
+  if($PSCmdlet.ParameterSetName -eq 'Key'){
+    $NewUrl = 'https://pastebin.com/raw/{0}' -f $Key
+  }else{
+    #TODO: Add raw to url if not present
+    throw 'url not implemented yet'
+  }
+  
+  $FileExt = switch($Format.ToLower(){
+    #TODO: Add fileformats
+    'none' {'.txt'}
+    'json' {'.json'}
+    default {'.txt'}
+  }
+  
+  try{
+    $Return = Invoke-RestMethod -Uri $NewUrl -ErrorAction Stop
+    New-Item -Path $FilePath -Name ($FileName + $FileExt) -Value $Return -ItemType File
+  }catch{
+    #TODO:Make proper error
+    throw 'Unabel to get paste'
+  }
+}
+
+
+Export-ModuleMember -Function Get-TrendingPaste,Save-Paste
