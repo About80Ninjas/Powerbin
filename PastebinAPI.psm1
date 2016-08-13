@@ -52,7 +52,7 @@ function Convert-UnixTime
   Write-Output -InputObject $ConvertedTime
 }
 
-function Get-TrendingPast
+function Get-TrendingPaste
 {
   <#
       .SYNOPSIS
